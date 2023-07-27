@@ -17,8 +17,8 @@ public class SearchJobServiceImpl implements SearchJobService {
     private final ItemService itemService;
 
     @Override
-    public Page<Item> search(List<String> categories, PageRequest pageRequest) {
-        scraperService.collectData(categories);
+    public Page<Item> search(List<String> jobFunctions, PageRequest pageRequest) {
+        scraperService.collectData(jobFunctions);
 
         return itemService.findAll(pageRequest);
     }

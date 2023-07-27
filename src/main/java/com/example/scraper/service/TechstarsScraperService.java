@@ -33,9 +33,9 @@ public class TechstarsScraperService implements ScraperService {
     private String baseUrl;
 
     @Override
-    public void collectData(List<String> categories) {
-        log.info("Starting collecting data by job functions: " + categories);
-        var categoryFilterParam = buildFilter(categories);
+    public void collectData(List<String> jobFunctions) {
+        log.info("Starting collecting data by job functions: " + jobFunctions);
+        var categoryFilterParam = buildFilter(jobFunctions);
         var jobElements = scrapeJobElements(categoryFilterParam);
 
         for (Element element: jobElements) {
@@ -47,16 +47,16 @@ public class TechstarsScraperService implements ScraperService {
         }
     }
 
-    private String buildFilter(List<String> categories) {
+    private String buildFilter(List<String> jobFunctions) {
         var filter = "";
-        if (!categories.isEmpty()) {
-            filter = FILTER_PREFIX + CategoryEncoder.encodeToBase64(categories);
+        if (!jobFunctions.isEmpty()) {
+            filter = FILTER_PREFIX + CategoryEncoder.encodeToBase64(jobFunctions);
         }
         return filter;
     }
 
-    private Elements scrapeJobElements(String categoryFilterParam) {
-        var url = baseUrl + "/jobs" + categoryFilterParam + MAX_PAGE_PARAM;
+    private Elements scrapeJobElements(String jobFunctionFilterParam) {
+        var url = baseUrl + "/jobs" + jobFunctionFilterParam + MAX_PAGE_PARAM;
 
         Document document;
         try {

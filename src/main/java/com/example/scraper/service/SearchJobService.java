@@ -7,5 +7,5 @@ import org.springframework.data.domain.PageRequest;
 
 public interface SearchJobService {
 
-    Page<Item> search(List<String> categories, PageRequest pageRequest);
+    Page<Item> search(List<String> jobFunctions, PageRequest pageRequest);
 }

@@ -27,14 +27,14 @@ public class JobSearchController {
 
     @GetMapping("/search")
     public ResponseEntity<Page<ItemSearchResponseDto>> search(
-            @RequestParam(name = "category") List<String> categories,
+            @RequestParam(name = "jobFunction") List<String> jobFunction,
             @RequestParam(name = "sortBy", defaultValue = "positionName") String sortBy,
             @RequestParam(name = "direction", defaultValue = "ASC") String sortDirection,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size
     ) {
         var itemDtosPage = searchJobService.search(
-                categories,
+                jobFunction,
                 PageRequest.of(
                         page,
                         size,
