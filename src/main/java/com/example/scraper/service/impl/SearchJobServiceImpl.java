@@ -1,6 +1,7 @@
 package com.example.scraper.service.impl;
 
 import com.example.scraper.model.Item;
+import com.example.scraper.service.ItemService;
 import com.example.scraper.service.ScraperService;
 import com.example.scraper.service.SearchJobService;
 import java.util.List;
@@ -13,9 +14,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SearchJobServiceImpl implements SearchJobService {
     private final ScraperService scraperService;
+    private final ItemService itemService;
 
     @Override
     public Page<Item> search(List<String> categories, PageRequest pageRequest) {
-        return null;
+        scraperService.collectData(categories);
+
+        return itemService.findAll(pageRequest);
     }
 }
