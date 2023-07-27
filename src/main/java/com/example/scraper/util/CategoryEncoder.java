@@ -17,17 +17,4 @@ public final class CategoryEncoder {
 
         return new String(base64Bytes, StandardCharsets.UTF_8);
     }
-
-//    private static final Base64.Encoder encoder = Base64.getEncoder();
-//
-//    public static String encode(List<String> categories) {
-//        StringBuilder encodedUrlCategories = new StringBuilder();
-//        encodedUrlCategories.append("{\"job_functions\":[");
-//
-//        categories.forEach(category -> encodedUrlCategories.append("\"" + category + "\""));
-//
-//        encodedUrlCategories.append("]}");
-//
-//        return encoder.encodeToString(encodedUrlCategories.toString().getBytes());
-//    }
 }

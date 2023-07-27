@@ -23,7 +23,7 @@ public class TechstarsScraperService {
 
     private final ItemService itemService;
 
-    @Value("${search.job.techstars.url}")
+    @Value("${scrape.source.url.techstars}")
     private String baseUrl;
 
     public void collectData(List<String> categories) {
