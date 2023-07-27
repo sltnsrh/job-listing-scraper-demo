@@ -1,14 +1,13 @@
-package com.example.scraper;
+package com.example.scraper.service;
 
 import com.example.scraper.model.Item;
+import com.example.scraper.util.CategoryEncoder;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -17,22 +16,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class ScraperService {
-    private final Base64.Encoder encoder;
+public class TechstarsScraperService {
+    private static final String FILTER_PREFIX = "?filter=";
 
-    @Value("${search.job.website.url}")
-    private String jobSiteUrl;
+    @Value("${search.job.techstars.url}")
+    private String baseUrl;
 
     public void collectData(List<String> categories) {
-        Document document;
-        try {
-            document = Jsoup.connect(jobSiteUrl).get();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        Elements jobElements = document.select(".sc-beqWaB.gupdsY.job-card[data-testid=job-list-item]");
+        var categoryFilterParam = buildFilter(categories);
+        var jobElements = scrapeJobElements(categoryFilterParam);
 
         for (Element element: jobElements) {
             var item = parseElementToItem(element);
@@ -40,11 +32,30 @@ public class ScraperService {
         }
     }
 
+    private String buildFilter(List<String> categories) {
+        var filter = "";
+        if (!categories.isEmpty()) {
+            filter = FILTER_PREFIX + CategoryEncoder.encodeToBase64(categories);
+        }
+        return filter;
+    }
+
+    private Elements scrapeJobElements(String categoryFilterParam) {
+        Document document;
+        try {
+            document = Jsoup.connect(baseUrl + "/jobs" + categoryFilterParam).get();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return document.select(".sc-beqWaB.gupdsY.job-card[data-testid=job-list-item]");
+    }
+
     private Item parseElementToItem(Element jobElement) {
-        var jobPageUrl = "https://jobs.techstars.com"
+        var jobPageUrl = baseUrl
                 + jobElement.selectFirst("a[data-testid=job-title-link]").attr("href");
         var positionName = jobElement.selectFirst("div[itemprop=title]").text();
-        var organizationUrl = "https://jobs.techstars.com"
+        var organizationUrl = baseUrl
                 + jobElement.selectFirst("a[data-testid=link]").attr("href");
         var logoUrl = jobElement.selectFirst("meta[itemprop=logo]").attr("content");
         var organizationTitle = jobElement.selectFirst("meta[itemprop=name]").attr("content");
