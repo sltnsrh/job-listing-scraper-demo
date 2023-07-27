@@ -1,6 +1,8 @@
 package com.example.scraper.model;
 
+import com.example.scraper.util.SetToStringConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,9 +32,11 @@ public class Item {
     private String organizationTitle;
     @Column(name = "labor_function")
     private String laborFunction;
+    @Convert(converter = SetToStringConverter.class)
     private Set<String> locations;
     private Long timestamp;
     private String description;
+    @Convert(converter = SetToStringConverter.class)
     private Set<String> tags;
 
     public Item(String jobPageUrl,
