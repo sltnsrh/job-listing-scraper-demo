@@ -1,6 +1,8 @@
-package com.example.scraper.service;
+package com.example.scraper.service.impl;
 
 import com.example.scraper.model.Item;
+import com.example.scraper.service.ItemService;
+import com.example.scraper.service.ScraperService;
 import com.example.scraper.util.CategoryEncoder;
 import java.io.IOException;
 import java.time.LocalDate;
