@@ -1,4 +1,4 @@
-package com.example.scraper.model.dto.response;
+package com.example.scraper.model.dto;
 
 import java.util.Set;
 import lombok.Data;
