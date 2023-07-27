@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TechstarsScraperService implements ScraperService {
     private static final String FILTER_PREFIX = "?filter=";
+    private static final String MAX_PAGE_PARAM = "&page=" + Integer.MAX_VALUE;
 
     private final ItemService itemService;
 
@@ -48,7 +50,8 @@ public class TechstarsScraperService implements ScraperService {
     private Elements scrapeJobElements(String categoryFilterParam) {
         Document document;
         try {
-            document = Jsoup.connect(baseUrl + "/jobs" + categoryFilterParam).get();
+            document = Jsoup.connect(
+                    baseUrl + "/jobs" + categoryFilterParam + MAX_PAGE_PARAM).get();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,7 +68,9 @@ public class TechstarsScraperService implements ScraperService {
         var logoUrl = jobElement.selectFirst("meta[itemprop=logo]").attr("content");
         var organizationTitle = jobElement.selectFirst("meta[itemprop=name]").attr("content");
         var laborFunction = jobElement.selectFirst("div[data-testid=tag]").text();
-        var location = jobElement.selectFirst("div[itemprop=jobLocation]").text();
+        var location = Objects.requireNonNullElse(
+                jobElement.selectFirst("div[itemprop=jobLocation]"),
+                new Element("no location")).text();
         var postedDate = parseDateToTimestamp(jobElement);
         var description = jobElement.selectFirst("meta[itemprop=description]").attr("content");
         var tags = parseTagsToSet(jobElement);
