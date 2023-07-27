@@ -5,11 +5,14 @@ import com.example.scraper.util.CategoryEncoder;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class TechstarsScraperService implements ScraperService {
     private static final String FILTER_PREFIX = "?filter=";
     private static final String MAX_PAGE_PARAM = "&page=" + Integer.MAX_VALUE;
@@ -30,12 +34,16 @@ public class TechstarsScraperService implements ScraperService {
 
     @Override
     public void collectData(List<String> categories) {
+        log.info("Starting collecting data by job functions: " + categories);
         var categoryFilterParam = buildFilter(categories);
         var jobElements = scrapeJobElements(categoryFilterParam);
 
         for (Element element: jobElements) {
             var item = parseElementToItem(element);
-            itemService.save(item);
+
+            if (item != null ) {
+                itemService.save(item);
+            }
         }
     }
 
@@ -48,32 +56,70 @@ public class TechstarsScraperService implements ScraperService {
     }
 
     private Elements scrapeJobElements(String categoryFilterParam) {
+        var url = baseUrl + "/jobs" + categoryFilterParam + MAX_PAGE_PARAM;
+
         Document document;
         try {
-            document = Jsoup.connect(
-                    baseUrl + "/jobs" + categoryFilterParam + MAX_PAGE_PARAM).get();
+            log.info("Starting scraping document from url: " + url);
+            document = Jsoup.connect(url).get();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("Can't get document from: " + url);
+            return new Elements();
         }
+        log.info("Connected successfully and got document");
 
         return document.select(".sc-beqWaB.gupdsY.job-card[data-testid=job-list-item]");
     }
 
     private Item parseElementToItem(Element jobElement) {
-        var jobPageUrl = baseUrl
-                + jobElement.selectFirst("a[data-testid=job-title-link]").attr("href");
-        var positionName = jobElement.selectFirst("div[itemprop=title]").text();
-        var organizationUrl = baseUrl
-                + jobElement.selectFirst("a[data-testid=link]").attr("href");
-        var logoUrl = jobElement.selectFirst("meta[itemprop=logo]").attr("content");
-        var organizationTitle = jobElement.selectFirst("meta[itemprop=name]").attr("content");
-        var laborFunction = jobElement.selectFirst("div[data-testid=tag]").text();
-        var location = Objects.requireNonNullElse(
-                jobElement.selectFirst("div[itemprop=jobLocation]"),
-                new Element("no location")).text();
+        String jobPageUrl;
+        String organizationUrl;
+        String logoUrl;
+        String organizationTitle;
+        String positionName;
+        String laborFunction;
+        String locationStr;
+
+        try {
+            jobPageUrl = baseUrl + Objects.requireNonNull(
+                    jobElement.selectFirst("a[data-testid=job-title-link]"))
+                    .attr("href");
+            organizationUrl = baseUrl
+                    + Objects.requireNonNull(jobElement.selectFirst("a[data-testid=link]"))
+                    .attr("href");
+            logoUrl = Objects.requireNonNull(jobElement.selectFirst("meta[itemprop=logo]"))
+                    .attr("content");
+            organizationTitle = Objects.requireNonNull(jobElement.selectFirst("meta[itemprop=name]"))
+                    .attr("content");
+            positionName = Objects.requireNonNull(
+                            jobElement.selectFirst("div[itemprop=title]"))
+                    .text();
+            laborFunction = Objects.requireNonNullElse(
+                            jobElement.selectFirst("div[data-testid=tag]"),
+                            new Element("no function"))
+                    .text();
+            locationStr = Objects.requireNonNullElse(
+                            jobElement.selectFirst("div[itemprop=jobLocation]"),
+                            new Element("no location"))
+                    .text();
+        } catch (NullPointerException e) {
+            log.warn("Can't retrieve data from element: " + jobElement);
+            return null;
+        }
+
         var postedDate = parseDateToTimestamp(jobElement);
-        var description = jobElement.selectFirst("meta[itemprop=description]").attr("content");
+        String description;
+        try {
+            description = Objects.requireNonNull(
+                    jobElement.selectFirst("meta[itemprop=description]"))
+                    .attr("content");
+        } catch (NullPointerException e) {
+            log.warn("No description in the element: " + jobElement);
+            description = "no description";
+        }
         var tags = parseTagsToSet(jobElement);
+        var locationsSet = Arrays.stream(locationStr.split(";"))
+                .collect(Collectors.toSet());
 
         return new Item(
                 jobPageUrl,
@@ -82,7 +128,7 @@ public class TechstarsScraperService implements ScraperService {
                 logoUrl,
                 organizationTitle,
                 laborFunction,
-                location,
+                locationsSet,
                 postedDate,
                 description,
                 tags
@@ -90,7 +136,14 @@ public class TechstarsScraperService implements ScraperService {
     }
 
     private long parseDateToTimestamp(Element element) {
-        var postedDateStr = element.selectFirst("meta[itemprop=datePosted]").attr("content");
+        String postedDateStr;
+        try {
+            postedDateStr = Objects.requireNonNull(element.selectFirst("meta[itemprop=datePosted]"))
+                    .attr("content");
+        } catch (NullPointerException e) {
+            log.warn("Can't retrieve a time from element: " + element);
+            return 0L;
+        }
         LocalDate localDate = LocalDate.parse(postedDateStr);
         return localDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
     }

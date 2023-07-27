@@ -11,7 +11,7 @@ public class ItemSearchResponseDto {
     private String logoUrl;
     private String organizationTitle;
     private String laborFunction;
-    private String location;
+    private Set<String> locations;
     private Long timestamp;
     private String description;
     private Set<String> tags;
