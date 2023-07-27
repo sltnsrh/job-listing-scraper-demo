@@ -30,7 +30,7 @@ public class Item {
     private String organizationTitle;
     @Column(name = "labor_function")
     private String laborFunction;
-    private String location;
+    private Set<String> locations;
     private Long timestamp;
     private String description;
     private Set<String> tags;
@@ -41,7 +41,7 @@ public class Item {
                 String logoUrl,
                 String organizationTitle,
                 String laborFunction,
-                String location,
+                Set<String> locations,
                 Long timestamp,
                 String description,
                 Set<String> tags) {
@@ -52,7 +52,7 @@ public class Item {
         this.logoUrl = logoUrl;
         this.organizationTitle = organizationTitle;
         this.laborFunction = laborFunction;
-        this.location = location;
+        this.locations = locations;
         this.timestamp = timestamp;
         this.description = description;
         this.tags = tags;
