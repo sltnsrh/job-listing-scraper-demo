@@ -5,11 +5,15 @@ import com.example.scraper.util.CategoryEncoder;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -38,12 +42,28 @@ public class TechstarsScraperService implements ScraperService {
         var categoryFilterParam = buildFilter(jobFunctions);
         var jobElements = scrapeJobElements(categoryFilterParam);
 
-        for (Element element: jobElements) {
-            var item = parseElementToItem(element);
+        List<Future<Item>> itemsFuture = new ArrayList<>();
 
-            if (item != null ) {
-                itemService.save(item);
+        try (var executorService = Executors
+                .newFixedThreadPool(Runtime.getRuntime().availableProcessors())) {
+            for (Element element: jobElements) {
+                var itemFuture = executorService.submit(() -> parseElementToItem(element));
+
+                itemsFuture.add(itemFuture);
             }
+        }
+
+        List<Item> items = new ArrayList<>();
+        itemsFuture.forEach(itemFuture -> {
+            try {
+                items.add(itemFuture.get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        if (!items.isEmpty()) {
+            itemService.saveAll(items);
         }
     }
 
