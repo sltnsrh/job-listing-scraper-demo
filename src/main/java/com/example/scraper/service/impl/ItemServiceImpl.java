@@ -3,7 +3,6 @@ package com.example.scraper.service.impl;
 import com.example.scraper.model.Item;
 import com.example.scraper.repository.ItemRepository;
 import com.example.scraper.service.ItemService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,11 +16,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public void save(Item item) {
         itemRepository.save(item);
-    }
-
-    @Override
-    public void saveAll(List<Item> items) {
-        itemRepository.saveAll(items);
     }
 
     @Override

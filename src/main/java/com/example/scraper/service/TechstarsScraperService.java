@@ -22,6 +22,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,7 +42,6 @@ public class TechstarsScraperService implements ScraperService {
         log.info("Starting collecting data by job functions: " + jobFunctions);
         var categoryFilterParam = buildFilter(jobFunctions);
         var jobElements = scrapeJobElements(categoryFilterParam);
-
         List<Future<Item>> itemsFuture = new ArrayList<>();
 
         try (var executorService = Executors
@@ -52,19 +52,8 @@ public class TechstarsScraperService implements ScraperService {
                 itemsFuture.add(itemFuture);
             }
         }
-
-        List<Item> items = new ArrayList<>();
-        itemsFuture.forEach(itemFuture -> {
-            try {
-                items.add(itemFuture.get());
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        if (!items.isEmpty()) {
-            itemService.saveAll(items);
-        }
+        List<Item> items = getItemsListFromFuture(itemsFuture);
+        saveItemsToDb(items);
     }
 
     private String buildFilter(List<String> jobFunctions) {
@@ -104,20 +93,26 @@ public class TechstarsScraperService implements ScraperService {
             jobPageUrl = baseUrl + Objects.requireNonNull(
                     jobElement.selectFirst("a[data-testid=job-title-link]"))
                     .attr("href");
+
             organizationUrl = baseUrl
                     + Objects.requireNonNull(jobElement.selectFirst("a[data-testid=link]"))
                     .attr("href");
+
             logoUrl = Objects.requireNonNull(jobElement.selectFirst("meta[itemprop=logo]"))
                     .attr("content");
+
             organizationTitle = Objects.requireNonNull(jobElement.selectFirst("meta[itemprop=name]"))
                     .attr("content");
+
             positionName = Objects.requireNonNull(
                             jobElement.selectFirst("div[itemprop=title]"))
                     .text();
+
             laborFunction = Objects.requireNonNullElse(
                             jobElement.selectFirst("div[data-testid=tag]"),
                             new Element("no function"))
                     .text();
+
             locationStr = Objects.requireNonNullElse(
                             jobElement.selectFirst("div[itemprop=jobLocation]"),
                             new Element("no location"))
@@ -137,6 +132,7 @@ public class TechstarsScraperService implements ScraperService {
             log.warn("No description in the element: " + jobElement);
             description = "no description";
         }
+
         var tags = parseTagsToSet(jobElement);
         var locationsSet = Arrays.stream(locationStr.split(";"))
                 .collect(Collectors.toSet());
@@ -177,5 +173,27 @@ public class TechstarsScraperService implements ScraperService {
         }
 
         return tags;
+    }
+
+    private List<Item> getItemsListFromFuture(List<Future<Item>> itemsFuture) {
+        List<Item> items = new ArrayList<>();
+        itemsFuture.forEach(itemFuture -> {
+            try {
+                items.add(itemFuture.get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        return items;
+    }
+
+    private void saveItemsToDb(List<Item> items) {
+        if (!items.isEmpty()) {
+            for (Item item: items) {
+                try {
+                    itemService.save(item);
+                } catch (DataIntegrityViolationException ignored) {}
+            }
+        }
     }
 }
