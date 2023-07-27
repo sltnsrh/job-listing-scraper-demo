@@ -8,15 +8,11 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jsoup.Jsoup;
@@ -32,7 +28,7 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class TechstarsScraperService implements ScraperService {
     private static final String FILTER_PREFIX = "?filter=";
-    private static final String MAX_PAGE_PARAM = "&page=" + Integer.MAX_VALUE;
+    private static final String MAX_PAGE_PARAM = "&page=" + 20;
 
     private final ItemService itemService;
 
@@ -89,12 +85,17 @@ public class TechstarsScraperService implements ScraperService {
         String organizationTitle;
         String positionName;
         String laborFunction;
-        String locationStr;
+        String locations;
+        long postedDate;
 
         try {
             jobPageUrl = baseUrl + Objects.requireNonNull(
                     jobElement.selectFirst("a[data-testid=job-title-link]"))
                     .attr("href");
+
+            if (jobPageUrl.length() > 750) {
+                return null;
+            }
 
             organizationUrl = baseUrl
                     + Objects.requireNonNull(jobElement.selectFirst("a[data-testid=link]"))
@@ -115,16 +116,17 @@ public class TechstarsScraperService implements ScraperService {
                             new Element("no function"))
                     .text();
 
-            locationStr = Objects.requireNonNullElse(
+            locations = Objects.requireNonNullElse(
                             jobElement.selectFirst("div[itemprop=jobLocation]"),
                             new Element("no location"))
                     .text();
-        } catch (NullPointerException e) {
+
+            postedDate = parseDateToTimestamp(jobElement);
+        } catch (NullPointerException ignored) {
             log.warn("Can't retrieve data from element: " + jobElement);
             return null;
         }
 
-        var postedDate = parseDateToTimestamp(jobElement);
         String description;
         try {
             description = Objects.requireNonNull(
@@ -136,8 +138,6 @@ public class TechstarsScraperService implements ScraperService {
         }
 
         var tags = parseTagsToSet(jobElement);
-        var locationsSet = Arrays.stream(locationStr.split(";"))
-                .collect(Collectors.toSet());
 
         return new Item(
                 jobPageUrl,
@@ -146,35 +146,31 @@ public class TechstarsScraperService implements ScraperService {
                 logoUrl,
                 organizationTitle,
                 laborFunction,
-                locationsSet,
+                locations,
                 postedDate,
                 description,
                 tags
         );
     }
 
-    private long parseDateToTimestamp(Element element) {
-        String postedDateStr;
-        try {
-            postedDateStr = Objects.requireNonNull(element.selectFirst("meta[itemprop=datePosted]"))
-                    .attr("content");
-        } catch (NullPointerException e) {
-            log.warn("Can't retrieve a time from element: " + element);
-            return 0L;
-        }
+    private long parseDateToTimestamp(Element element) throws NullPointerException {
+        String postedDateStr = Objects.requireNonNull(element.selectFirst("meta[itemprop=datePosted]"))
+                .attr("content");
         LocalDate localDate = LocalDate.parse(postedDateStr);
+
         return localDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 
-    private Set<String> parseTagsToSet(Element element) {
+    private String parseTagsToSet(Element element) {
         Elements tagElements = element.select("div[data-testid=tag]");
 
-        Set<String> tags = new HashSet<>();
+        StringBuilder tagSb = new StringBuilder();
         for (Element tagElement : tagElements) {
-            tags.add(tagElement.text());
+            tagSb.append(tagElement.text());
+            tagSb.append("; ");
         }
 
-        return tags;
+        return tagSb.toString();
     }
 
     private List<Item> getItemsListFromFuture(List<Future<Item>> itemsFuture) {
@@ -193,7 +189,9 @@ public class TechstarsScraperService implements ScraperService {
         if (!items.isEmpty()) {
             for (Item item: items) {
                 try {
-                    itemService.save(item);
+                    if (item != null) {
+                        itemService.save(item);
+                    }
                 } catch (DataIntegrityViolationException ignored) {}
             }
         }
