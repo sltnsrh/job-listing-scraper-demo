@@ -14,11 +14,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 @RequiredArgsConstructor
-public class TechstarsScraperService {
+public class TechstarsScraperService implements ScraperService {
     private static final String FILTER_PREFIX = "?filter=";
 
     private final ItemService itemService;
@@ -26,6 +26,7 @@ public class TechstarsScraperService {
     @Value("${scrape.source.url.techstars}")
     private String baseUrl;
 
+    @Override
     public void collectData(List<String> categories) {
         var categoryFilterParam = buildFilter(categories);
         var jobElements = scrapeJobElements(categoryFilterParam);
