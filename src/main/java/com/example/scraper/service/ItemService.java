@@ -8,5 +8,5 @@ public interface ItemService {
 
     void save(Item item);
 
-    Page<Item> findAll(PageRequest pageRequest);
+    Page<Item> findAllByFieldKeyword(PageRequest pageRequest, String findByField, String keyword);
 }

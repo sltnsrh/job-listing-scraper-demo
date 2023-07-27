@@ -31,14 +31,19 @@ public class JobSearchController {
             @RequestParam(name = "sortBy", defaultValue = "positionName") String sortBy,
             @RequestParam(name = "direction", defaultValue = "ASC") String sortDirection,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "size", defaultValue = "10") Integer size
+            @RequestParam(name = "size", defaultValue = "10") Integer size,
+            @RequestParam(name = "findByField", required = false) String findByField,
+            @RequestParam(name = "keyword", required = false) String keyword
+
     ) {
         var itemDtosPage = searchJobService.search(
                 jobFunction,
-                PageRequest.of(
-                        page,
-                        size,
-                        Sort.by(Sort.Direction.valueOf(sortDirection.toUpperCase()), sortBy)))
+                        findByField,
+                        keyword,
+                        PageRequest.of(
+                                page,
+                                size,
+                                Sort.by(Sort.Direction.valueOf(sortDirection.toUpperCase()), sortBy)))
                 .map(itemMapper::toDto);
 
         return ResponseEntity.ok(itemDtosPage);

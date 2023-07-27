@@ -17,9 +17,12 @@ public class SearchJobServiceImpl implements SearchJobService {
     private final ItemService itemService;
 
     @Override
-    public Page<Item> search(List<String> jobFunctions, PageRequest pageRequest) {
+    public Page<Item> search(List<String> jobFunctions,
+                             String filterByField,
+                             String filterByValue,
+                             PageRequest pageRequest) {
         scraperService.collectData(jobFunctions);
 
-        return itemService.findAll(pageRequest);
+        return itemService.findAllByFieldKeyword(pageRequest, filterByField, filterByValue);
     }
 }
