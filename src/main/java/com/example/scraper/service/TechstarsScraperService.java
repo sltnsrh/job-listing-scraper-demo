@@ -8,6 +8,7 @@ import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,8 +17,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class TechstarsScraperService {
     private static final String FILTER_PREFIX = "?filter=";
+
+    private final ItemService itemService;
 
     @Value("${search.job.techstars.url}")
     private String baseUrl;
@@ -28,7 +32,7 @@ public class TechstarsScraperService {
 
         for (Element element: jobElements) {
             var item = parseElementToItem(element);
-            //todo: save item to DB using ItemService
+            itemService.save(item);
         }
     }
 
