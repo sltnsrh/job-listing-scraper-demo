@@ -137,7 +137,7 @@ public class TechstarsScraperService implements ScraperService {
             description = "no description";
         }
 
-        var tags = parseTagsToSet(jobElement);
+        var tags = parseTags(jobElement);
 
         return new Item(
                 jobPageUrl,
@@ -161,7 +161,7 @@ public class TechstarsScraperService implements ScraperService {
         return localDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 
-    private String parseTagsToSet(Element element) {
+    private String parseTags(Element element) {
         Elements tagElements = element.select("div[data-testid=tag]");
 
         StringBuilder tagSb = new StringBuilder();
