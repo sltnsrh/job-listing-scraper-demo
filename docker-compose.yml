@@ -4,6 +4,7 @@ services:
   db:
     image: mysql:latest
     container_name: jobsDb
+    restart: always
     environment:
       - MYSQL_DATABASE=jobsDb
       - MYSQL_ROOT_PASSWORD=password
@@ -12,6 +13,19 @@ services:
     networks:
       - job
 
+  app:
+    build: ./
+    container_name: jobs-app
+    ports:
+      - "8080:8080"
+    environment:
+      - spring.datasource.url=jdbc:mysql://jobsDb:3306/jobsDb?serverTimezone=UTC
+      - spring.datasource.username=root
+      - spring.datasource.password=password
+    depends_on:
+      - db
+    networks:
+      - job
 
 networks:
   job:
