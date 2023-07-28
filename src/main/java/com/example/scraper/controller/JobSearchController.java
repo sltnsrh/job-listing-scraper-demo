@@ -1,7 +1,6 @@
 package com.example.scraper.controller;
 
 import com.example.scraper.model.dto.ItemSearchResponseDto;
-import com.example.scraper.repository.ItemRepository;
 import com.example.scraper.service.SearchJobService;
 import com.example.scraper.service.mapper.ItemMapper;
 import java.util.List;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class JobSearchController {
     private final SearchJobService searchJobService;
     private final ItemMapper itemMapper;
-    private final ItemRepository repository;
 
     @GetMapping("/search")
     public ResponseEntity<Page<ItemSearchResponseDto>> search(
