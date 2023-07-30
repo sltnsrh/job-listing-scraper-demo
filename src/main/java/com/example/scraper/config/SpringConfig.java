@@ -9,13 +9,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SpringConfig {
 
-    @Bean
+    @Bean(destroyMethod = "quit")
     public WebDriver webDriver() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");
         options.addArguments("--disable-gpu");
-        System.setProperty("webdriver.chrome.driver", "chromedriver");
+        options.addArguments("-remote-allow-origins=*");
+        System.setProperty("webdriver.chrome.driver", "/home/sltn/IdeaProjects/scraper/chromedriver");
+        System.setProperty("webdriver.http.factory", "jdk-http-client");
 
-        return new ChromeDriver();
+        return new ChromeDriver(options);
     }
 }

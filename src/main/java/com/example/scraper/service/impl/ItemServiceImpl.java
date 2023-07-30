@@ -31,4 +31,9 @@ public class ItemServiceImpl implements ItemService {
 
         return itemRepository.findAll(specification, pageRequest);
     }
+
+    @Override
+    public long count() {
+        return itemRepository.count();
+    }
 }

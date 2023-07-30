@@ -17,13 +17,13 @@ public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "job_page_url", length = 750, unique = true)
+    @Column(name = "job_page_url", length = 760, unique = true)
     private String jobPageUrl;
     @Column(name = "position_name")
     private String positionName;
-    @Column(name = "organization_url", length = 500)
+    @Column(name = "organization_url", length = 760)
     private String organizationUrl;
-    @Column(name = "loge_url")
+    @Column(name = "loge_url", length = 760)
     private String logoUrl;
     @Column(name = "organization_title")
     private String organizationTitle;
