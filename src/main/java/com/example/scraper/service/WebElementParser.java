@@ -21,7 +21,8 @@ public class WebElementParser {
 
     public List<Item> parseElementsToItems(List<WebElement> elements) {
         List<Future<Item>> jobItemsFuture = new ArrayList<>();
-        try (var executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())) {
+        try (var executorService = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors())) {
 
             for (WebElement jobElement: elements) {
                 Future<Item> itemFuture =
@@ -33,9 +34,11 @@ public class WebElementParser {
     }
 
     private Item parseElementToItem(WebElement jobElement) {
-        String jobPageUrl = jobElement.findElement(By.cssSelector("a[data-testid=job-title-link]")).getAttribute("href");
+        String jobPageUrl = jobElement.findElement(
+                By.cssSelector("a[data-testid=job-title-link]")).getAttribute("href");
         if (jobPageUrl.length() > 760) {
-            log.error("Job page url is to long to save to DB. Item will not be saved. Job url: " + jobPageUrl);
+            log.error("Job page url is to long to save to DB. Item will not be saved. Job url: "
+                    + jobPageUrl);
             return null;
         }
         String positionName = jobElement.findElement(By.cssSelector("div[itemprop=title]")).getText();
@@ -46,9 +49,12 @@ public class WebElementParser {
             log.warn("Error while finding labour function element: " + e.getMessage());
             laborFunction = "";
         }
-        String organizationUrl = jobElement.findElement(By.cssSelector("a[data-testid=link]")).getAttribute("href");
-        String logoUrl = jobElement.findElement(By.cssSelector("meta[itemprop=logo]")).getAttribute("content");
-        String organizationTitle = jobElement.findElement(By.cssSelector("meta[itemprop=name]")).getAttribute("content");
+        String organizationUrl = jobElement.findElement(
+                By.cssSelector("a[data-testid=link]")).getAttribute("href");
+        String logoUrl = jobElement.findElement(
+                By.cssSelector("meta[itemprop=logo]")).getAttribute("content");
+        String organizationTitle = jobElement.findElement(
+                By.cssSelector("meta[itemprop=name]")).getAttribute("content");
         String locationStr;
         try {
             locationStr = jobElement.findElement(By.cssSelector("div[itemprop=jobLocation]")).getText();
@@ -56,8 +62,10 @@ public class WebElementParser {
             log.warn("Error while finding location element: " + e.getMessage());
             locationStr = "";
         }
-        String description = jobElement.findElement(By.cssSelector("meta[itemprop=description]")).getAttribute("content");
-        String postedDateStr = jobElement.findElement(By.cssSelector("meta[itemprop=datePosted]")).getAttribute("content");
+        String description = jobElement.findElement(
+                By.cssSelector("meta[itemprop=description]")).getAttribute("content");
+        String postedDateStr = jobElement.findElement(
+                By.cssSelector("meta[itemprop=datePosted]")).getAttribute("content");
         LocalDate localDate = LocalDate.parse(postedDateStr);
         long postedDate = localDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
         String tags;
