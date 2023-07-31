@@ -15,7 +15,7 @@ public class SpringConfig {
         options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         options.addArguments("-remote-allow-origins=*");
-        System.setProperty("webdriver.chrome.driver", "/home/sltn/IdeaProjects/scraper/chromedriver");
+        System.setProperty("webdriver.chrome.driver", "./chromedriver");
         System.setProperty("webdriver.http.factory", "jdk-http-client");
 
         return new ChromeDriver(options);
