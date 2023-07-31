@@ -29,6 +29,7 @@ public class Item {
     private String organizationTitle;
     @Column(name = "labor_function")
     private String laborFunction;
+    @Column(name = "locations", length = 500)
     private String locations;
     private Long timestamp;
     private String description;
