@@ -36,6 +36,11 @@ public class TechstarsScraperService implements ScraperService {
         log.info("Starting collecting data by job functions: " + jobFunctions);
         var categoryFilterParam = buildFilter(jobFunctions);
         var countOfElements = calculateCountOfElements(categoryFilterParam);
+        if (countOfElements <= 1) {
+            log.info("There are no items to process. Return");
+            return;
+        }
+        log.info("Found {} elements to process", countOfElements);
 
         processAllRequestedElements(categoryFilterParam, countOfElements);
     }
@@ -52,6 +57,9 @@ public class TechstarsScraperService implements ScraperService {
         webDriver.get(baseUrl + "/jobs" + categoryFilterParam);
         var element = webDriver.findElement(By.cssSelector("div.sc-beqWaB.eJrfpP"));
         String jobsCountText = element.findElement(By.tagName("b")).getText();
+        if (jobsCountText == null || jobsCountText.isBlank()) {
+            return 0;
+        }
         return Integer.parseInt(jobsCountText.replaceAll(",", ""));
     }
 
