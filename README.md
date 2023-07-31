@@ -41,3 +41,9 @@ ___
 Currently, the app has a problem with the stability of loading large amounts of data. That's why the temporary scraping 
 scope is limited to 20 pages from jobs.techstars.com. In case any data will not be loaded, retry the request a few times.
 It needs to be fixed.
+___
+
+**App was updated** on 31.07.23. Rebuilt with using Selenium WebDriver and fixed limitation on pages loading. New dump file
+
+added to project folder here: [sofware-engineering.sql](sofware-engineering.sql)
+Also you can load it from Google Drive: https://drive.google.com/file/d/1wg7T0RfRlbVpNlQ9pzwmxBmEdyIT6T4S/view?usp=sharing
