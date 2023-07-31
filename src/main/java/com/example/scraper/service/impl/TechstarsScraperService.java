@@ -66,6 +66,7 @@ public class TechstarsScraperService implements ScraperService {
     private void processAllRequestedElements(String jobFunctionFilterParam, final int totalElements) {
         int totalElementsScraped = 0;
         int allPagesCount = (totalElements - 19) / 20 + 1;
+        log.info("Calculated count of pages to process: " + allPagesCount);
         int currentPage = 0;
 
         totalElementsScraped += processDataFromFistPage(jobFunctionFilterParam);
