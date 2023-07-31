@@ -84,10 +84,8 @@ public class TechstarsScraperService implements ScraperService {
             var elementsToProcess = loadedElements.stream()
                     .skip(totalElementsScraped)
                     .toList();
-            try (var executorService = Executors.newFixedThreadPool(
-                    Runtime.getRuntime().availableProcessors() - 1)) {
-                executorService.submit(() -> parseAndSaveItems(elementsToProcess));
-            }
+
+            sendElementToExecutor(elementsToProcess);
             totalElementsScraped += elementsToProcess.size();
             currentPage++;
             log.info("Last processed page: " + currentPage);
@@ -102,11 +100,16 @@ public class TechstarsScraperService implements ScraperService {
 
         var firstPageElements = webDriver.findElements(By.cssSelector(
                 ".sc-beqWaB.gupdsY.job-card[data-testid=job-list-item]"));
+        sendElementToExecutor(firstPageElements);
+
+        return firstPageElements.size();
+    }
+
+    private void sendElementToExecutor(List<WebElement> elements) {
         try (var executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors() - 1)) {
-            executorService.submit(() -> parseAndSaveItems(firstPageElements));
+            executorService.submit(() -> parseAndSaveItems(elements));
         }
-        return firstPageElements.size();
     }
 
     private int processDataFromSecondPage(int totalElementsScraped) {
@@ -127,10 +130,7 @@ public class TechstarsScraperService implements ScraperService {
         var elementsToSave = currentLoadedList.stream()
                 .skip(totalElementsScraped)
                 .toList();
-        try (var executorService = Executors.newFixedThreadPool(
-                Runtime.getRuntime().availableProcessors() - 1)) {
-            executorService.submit(() -> parseAndSaveItems(elementsToSave));
-        }
+        sendElementToExecutor(elementsToSave);
 
         return elementsToSave.size();
     }
